@@ -54,6 +54,7 @@ html,body{
 .layer{
   position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;
   opacity:0;transition:opacity 1.1s ease;will-change:opacity;
+  pointer-events:none;   /* 关键：整层不拦截点击，只有按钮自己 pointer-events:auto */
 }
 .layer.show{opacity:1}
 
@@ -129,6 +130,7 @@ html,body{
   box-shadow:inset 0 0 0 1px rgba(255,205,150,.16), 0 18px 60px rgba(0,0,0,.55);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   position:relative;transition:padding .45s ease,opacity .45s ease;
+  pointer-events:auto;   /* 卡片自身可点（收起按钮 / 落款区），不穿透到 3D 层 */
 }
 /* 文案卡收纳按钮 */
 #foldBtn{
@@ -1466,7 +1468,15 @@ void main(){
     const m = Music.mute();
     $('music').classList.toggle('muted', !!m);
   });
-  $('again').addEventListener('click', function(){ replay(); });
+  /* 这行文案是"再放一场烟花"的提示：点它只放烟花，不再重开整段流程（避免误触重开） */
+  $('again').addEventListener('click', function(e){
+    e.stopPropagation();
+    for(let i=0;i<2;i++){
+      burst(rr(-viewHalfW*0.6, viewHalfW*0.6), rr(0.05,0.52)*viewHalfH, rr(-0.6,0.4),
+            S.now + i*0.12, {count:480, power:2.5});
+    }
+    fwActiveUntil = S.now + 2.6;
+  });
   /* 文案卡：可收起 / 展开，默认展开 */
   $('foldBtn').addEventListener('click', function(e){
     e.stopPropagation();
